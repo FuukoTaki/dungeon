@@ -1,3 +1,6 @@
+import { Player, classesAvailable } from "./player.js";
+import { tossACoin, tossTwoCoins, coinResults } from "./coinToss.js";
+
 let canvas;
 let ctx;
 
@@ -8,27 +11,23 @@ let dPressed = false;
 
 let player;
 
-const classesAvailable = {
-    SOLDIER: "soldier",
-    KNIGHT: "knight",
-    TEMPLAR_KNIGHT: "templarKnight",
-    SWORDSMAN: "swordsman",
-    ARMORED_AXEMAN: "armoredAxeman",
-    LANCER: "lancer",
-    WIZARD: "wizard",
-    PRIEST: "priest",
-    ARCHER: "archer"
-};
-
 window.addEventListener("DOMContentLoaded", () => {
 
+    // Set Canvas and Ctx variables.
     canvas = document.getElementById("game-canvas");
     ctx = canvas.getContext("2d");
 
+    // Set canvas size.
     canvas.width = 400;
     canvas.height = 300;
 
-    player = new Player(classesAvailable.SWORDSMAN);
+    // Create player instance.
+    player = new Player(
+        classesAvailable.SOLDIER, // Class.
+        20, // X.
+        canvas.height / 2 - 10 // Y.
+    );
+
     console.log(player);
 
     window.addEventListener("keydown", (e) => {
@@ -49,6 +48,8 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         if (e.key === "Enter") player.isAttacking = true;
+        if (e.key === "j") player.abilities[0].activateAbility();
+        if (e.key === "k") player.abilities[1].activateAbility();
     });
 
     window.addEventListener("keyup", (e) => {
@@ -59,17 +60,23 @@ window.addEventListener("DOMContentLoaded", () => {
         if (e.key === "d") dPressed = false;
     });
 
+    // Start game loop.
     requestAnimationFrame(gameLoop);
 });
 
+// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
+
+// -- GAME LOOP --
+
 function gameLoop() {
 
+    // Clear canvas.
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (wPressed) player.y -= 2;
-    if (sPressed) player.y += 2;
-    if (aPressed) player.x -= 2;
-    if (dPressed) player.x += 2;
+    if (wPressed) player.y -= player.movementSpeed;
+    if (sPressed) player.y += player.movementSpeed;
+    if (aPressed) player.x -= player.movementSpeed;
+    if (dPressed) player.x += player.movementSpeed;
 
     if (player.isAttacking) {
 
@@ -126,124 +133,3 @@ function gameLoop() {
 }
 
 // ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-
-// -- COIN TOSS --
-
-const coinResults = {
-    NORMAL: "normal",
-    BUFF: "buff",
-    DEBUFF: "debuff",
-
-    TAILS: "tails",
-    HEADS: "heads"
-};
-
-function tossACoin() {
-
-    let coinFlip = Math.floor(Math.random() * 2);
-    return (coinFlip === 0) ? coinResults.TAILS : coinResults.HEADS;
-}
-
-function tossTwoCoins() {
-
-    let coin1 = tossACoin();
-    let coin2 = tossACoin();
-
-    if (coin1 === coinResults.TAILS && coin2 === coinResults.TAILS)
-        return coinResults.BUFF;
-    if (coin1 === coinResults.HEADS && coin2 === coinResults.HEADS)
-        return coinResults.DEBUFF;
-
-    return coinResults.NORMAL;
-}
-
-// ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ---- ----
-
-class Player {
-
-    constructor(classSelected) {
-
-        // Class selected.
-        this.classSelected = classSelected;
-
-        // Core stats.
-        this.hp = 12;
-        this.attack = 2;
-        this.attackSpeed = 60;
-        this.critical = 0;
-        this.defense = 0;
-        this.movementSpeed = 2;
-        this.debuffResistance = 0;
-        this.wisdom = 0;
-
-        // Add stats bonus.
-        this.addClassBonus(classSelected);
-
-        // Used to reset stats when modified.
-        this.hpMax = this.hp;
-        this.attackMax = this.attack;
-        this.attackSpeedMax = this.attackSpeed;
-        this.criticalMax = this.critical;
-        this.defenseMax = this.defense;
-        this.movementSpeedMax = this.movementSpeed;
-        this.debuffResistanceMax = this.debuffResistance;
-        this.wisdomMax = this.wisdom;
-
-        // Variables.
-        this.x = 0;
-        this.y = 0;
-        this.isAttacking = false;
-        this.direction = "right";
-    }
-
-    addClassBonus(playerClass) {
-
-        switch (playerClass) {
-
-            case classesAvailable.SOLDIER:
-                this.attack += 1;
-                this.attackSpeed -= 6;
-                break;
-
-            case classesAvailable.KNIGHT:
-                this.attack += 1;
-                this.defense += 1;
-                break;
-
-            case classesAvailable.TEMPLAR_KNIGHT:
-                this.hp += 6;
-                this.wisdom += 1;
-                break;
-
-            case classesAvailable.SWORDSMAN:
-                this.attackSpeed -= 12;
-                this.critical += 1;
-                break;
-
-            case classesAvailable.ARMORED_AXEMAN:
-                this.hp += 6;
-                this.attack += 1;
-                break;
-
-            case classesAvailable.LANCER:
-                this.hp += 6;
-                this.movementSpeed += 2;
-                break;
-
-            case classesAvailable.WIZARD:
-                this.movementSpeed += 1;
-                this.debuffResistance += 4;
-                break;
-
-            case classesAvailable.PRIEST:
-                this.movementSpeed += 1;
-                this.wisdom += 2;
-                break;
-
-            case classesAvailable.ARCHER:
-                this.movementSpeed += 1;
-                this.critical += 1;
-                break;
-        }
-    }
-}
