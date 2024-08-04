@@ -1,5 +1,6 @@
 import { Player, classesAvailable } from "./player.js";
 import { tossACoin, tossTwoCoins, coinResults } from "./coinToss.js";
+import { lesserHealing, lesserProtection } from "./abilities.js";
 
 let canvas;
 let ctx;
@@ -23,7 +24,7 @@ window.addEventListener("DOMContentLoaded", () => {
 
     // Create player instance.
     player = new Player(
-        classesAvailable.SOLDIER, // Class.
+        classesAvailable.KNIGHT, // Class.
         20, // X.
         canvas.height / 2 - 10 // Y.
     );
@@ -48,8 +49,20 @@ window.addEventListener("DOMContentLoaded", () => {
         }
 
         if (e.key === "Enter") player.isAttacking = true;
-        if (e.key === "j") player.abilities[0].activateAbility();
-        if (e.key === "k") player.abilities[1].activateAbility();
+
+        if (e.key === "j") {
+
+            switch (player.classSelected) {
+
+                case classesAvailable.PRIEST:
+                    lesserHealing.activate(player);
+                    break;
+
+                case classesAvailable.KNIGHT:
+                    lesserProtection.activate(player);
+                    break;
+            }
+        }
     });
 
     window.addEventListener("keyup", (e) => {
