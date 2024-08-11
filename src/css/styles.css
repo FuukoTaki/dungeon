@@ -1,0 +1,32 @@
+* {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+html {
+    overflow: hidden;
+}
+
+#game-canvas {
+    background-color: black;
+}
+
+#class-change-menu {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+}
+
+#class-change-select {
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 0px;
+    border: none;
+    background-color: slateblue;
+    color: white;
+}
+
+#class-change-select:hover {
+    background-color: rgb(55, 47, 112);
+}
