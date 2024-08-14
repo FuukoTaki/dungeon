@@ -1,11 +1,12 @@
-import { Sprite, classesAvailable } from "./player.js";
+import { spritesSRC, loadSpritesheets } from "./loader.js";
+import { Sprite, charactersAvailable } from "./player.js";
 import { vCam } from "./vCam.js";
 
 let canvas;
 let ctx;
 
-let classChangeSelect;
-let classSelected;
+let characterChangeSelect;
+let characterSelected;
 
 let scale = 0.6;
 let fps = 60;
@@ -14,9 +15,11 @@ let interval = 1000 / fps;
 
 let vCamDelay = 1;
 
-let player;
-let imgSRC;
+export let player;
+export let enemy;
 let isAttacking = false;
+
+export let projectiles = [];
 
 // Movement keys.
 let wPressed = false;
@@ -36,34 +39,55 @@ window.addEventListener("DOMContentLoaded", () => {
     canvas = document.getElementById("game-canvas");
     ctx = canvas.getContext("2d");
 
-    classChangeSelect = document.getElementById("class-change-select");
+    characterChangeSelect = document.getElementById("character-change-select");
 
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    classSelected = classesAvailable.SOLDIER;
+    characterSelected = charactersAvailable.SOLDIER;
 
-    imgSRC = new Image();
-    imgSRC.src = `./src/img/${classSelected}.png`;
+    loadSpritesheets();
+});
+
+export function initGame() {
+
+    console.log("Init game...");
 
     player = new Sprite(
-        imgSRC,
+        spritesSRC[characterSelected],
         canvas.width / 2 - 200, canvas.height / 2 - 200,
         400, 400,
-        classSelected
+        characterSelected
     );
+
+    enemy = new Sprite(
+        spritesSRC["swordsman"],
+        canvas.width / 2 - 200, canvas.height / 2 - 200,
+        400, 400,
+        "swordsman"
+    );
+
+    player.addCharacterAbilities(player.characterSelected);
 
     vCam.setInitialValues(vCamDelay, player);
 
-    classChangeSelect.addEventListener("change", (e) => {
+    window.addEventListener("resize", (e) => {
 
-        console.log(classChangeSelect.value);
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
 
-        classSelected = classChangeSelect.value;
-        imgSRC.src = `./src/img/${classSelected}.png`;
-        player.src = imgSRC;
+        console.log(`Screen Resized, W:${canvas.width} H:${canvas.height}`);
+        console.log("Please restart game.");
 
-        player.changeClass(classSelected);
+    });
+
+    characterChangeSelect.addEventListener("change", (e) => {
+
+        console.log(characterChangeSelect.value);
+
+        characterSelected = characterChangeSelect.value;
+        player.src = spritesSRC[characterSelected];
+        player.changeCharacter(characterSelected);
 
         console.log(player.src);
     });
@@ -79,14 +103,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
         scale = parseFloat(scale.toFixed(1));
         console.log("Scale: " + scale);
-
-        // Apply zoom to all items on canvas.
-        let auxDelay = vCam.delay;
-        vCam.delay = 1;
-        vCam.updateVCam(ctx, canvas, scale);
-        ctx.scale(scale, scale);
-        ctx.setTransform(1, 0, 0, 1, 0, 0);
-        vCam.delay = auxDelay;
 
     }, { passive: false });
 
@@ -119,7 +135,7 @@ window.addEventListener("DOMContentLoaded", () => {
     });
 
     requestAnimationFrame(gameLoop);
-});
+}
 
 // ---- ---- ---- ---- ---- ---- ---- ----
 
@@ -145,9 +161,14 @@ function gameLoopController() {
 
     // ---- ---- ---- ---- ---- ---- ---- ----
 
-    ctx.fillStyle = "green";
-    ctx.fillRect(300, 300, 100, 100);
+    projectiles.forEach(arrow => {
 
+        if (arrow.direction === "left") arrow.x -= 32;
+        if (arrow.direction === "right") arrow.x += 32;
+        arrow.tick(ctx);
+    });
+
+    enemy.tick(ctx);
     playerController();
 
     // ---- ---- ---- ---- ---- ---- ---- ----
@@ -164,6 +185,13 @@ function playerController() {
     // ---- ---- ---- ---- ---- ---- ---- ----
 
     // -- ATTACK --
+
+    if (spacePressed) {
+
+        player.switchAnimation(player.animationsAvailable.DEATH);
+        player.tick(ctx);
+        return;
+    }
 
     if (hPressed && player.animationsAvailable["BLOCKING"] != undefined) isAttacking = true;
     if (jPressed && player.animationsAvailable["ATTACK1"] != undefined) isAttacking = true;
@@ -183,6 +211,15 @@ function playerController() {
         }
 
         if (player.currentAnimation.animationFinished) {
+
+            switch (player.characterSelected) {
+
+                case charactersAvailable.SOLDIER:
+                    if (player.currentAnimation.name === "ATTACK2") player.abilities[0].activateAbility(player, enemy);
+                    if (player.currentAnimation.name === "ATTACK3") player.abilities[1].activateAbility(player);
+                    break;
+            }
+
             isAttacking = false;
             player.currentAnimation.animationFinished = false;
             player.switchAnimation(player.animationsAvailable.IDLE);
@@ -197,8 +234,8 @@ function playerController() {
 
     // -- MOVEMENT --
 
-    let angularSpeed = player.movementSpeed * Math.sqrt(2) / 2;
-    let movementSpeed = player.movementSpeed;
+    let angularSpeed = player.stats.movementSpeed * Math.sqrt(2) / 2;
+    let movementSpeed = player.stats.movementSpeed;
 
     if (spacePressed && (wPressed || sPressed || aPressed || dPressed) && player.animationsAvailable["GUARD_WALKING"] != undefined) {
         angularSpeed *= 0.2;
