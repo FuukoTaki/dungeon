@@ -1,5 +1,5 @@
 import { animationsAvailable } from "./animation.js";
-import { leapingSlam, magicArrow } from "./abilities.js";
+import { swordSlash, leapingSlam, magicArrow } from "./abilities.js";
 
 export let charactersAvailable = {
     // Humans.
@@ -51,6 +51,7 @@ export class Sprite {
 
             case charactersAvailable.SOLDIER:
                 this.abilities = [
+                    swordSlash,
                     leapingSlam,
                     magicArrow
                 ];
@@ -166,16 +167,14 @@ export class Sprite {
         // -- TICKS FOR NEXT ANIMATION FRAME --
 
         this.framesMultiplier--;
-
         if (this.framesMultiplier <= 0) {
             this.framesMultiplier = this.framesMultiplierMax;
             this.currentFrame++;
             if (this.currentFrame >= this.currentAnimation.frames) {
-                this.currentFrame = 0;
-                if (this.currentAnimation.endAnimationOnLastFrame) {
+                if (this.currentAnimation.loop) this.currentFrame = 0;
+                if (!this.currentAnimation.loop) {
                     this.currentFrame = this.currentAnimation.frames - 1;
-                } else {
-                    if (!this.currentAnimation.loop) this.currentAnimation.animationFinished = true;
+                    this.currentAnimation.animationFinished = true;
                 }
             }
         }

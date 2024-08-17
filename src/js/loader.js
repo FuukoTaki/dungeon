@@ -8,7 +8,9 @@ const spritesURL = {
     swordsman: "./src/img/swordsman.png",
     armored_axeman: "./src/img/armored_axeman.png",
 
-    arrow1: "./src/img/projectiles/arrow1.png"
+    arrow1: "./src/img/projectiles/arrow1.png",
+
+    red_girl: "./src/img/RedGirl.png"
 };
 
 // Object that will contain all spritesheet images once loaded.

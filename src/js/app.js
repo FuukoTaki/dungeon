@@ -54,10 +54,10 @@ export function initGame() {
     console.log("Init game...");
 
     player = new Sprite(
-        spritesSRC[characterSelected],
-        canvas.width / 2 - 200, canvas.height / 2 - 200,
-        400, 400,
-        characterSelected
+        spritesSRC["red_girl"],
+        canvas.width / 2 - 128, canvas.height / 2 - 128,
+        256, 256,
+        "red_girl"
     );
 
     enemy = new Sprite(
@@ -162,13 +162,12 @@ function gameLoopController() {
     // ---- ---- ---- ---- ---- ---- ---- ----
 
     projectiles.forEach(arrow => {
-
         if (arrow.direction === "left") arrow.x -= 32;
         if (arrow.direction === "right") arrow.x += 32;
         arrow.tick(ctx);
     });
 
-    enemy.tick(ctx);
+    // enemy.tick(ctx);
     playerController();
 
     // ---- ---- ---- ---- ---- ---- ---- ----
@@ -185,13 +184,6 @@ function playerController() {
     // ---- ---- ---- ---- ---- ---- ---- ----
 
     // -- ATTACK --
-
-    if (spacePressed) {
-
-        player.switchAnimation(player.animationsAvailable.DEATH);
-        player.tick(ctx);
-        return;
-    }
 
     if (hPressed && player.animationsAvailable["BLOCKING"] != undefined) isAttacking = true;
     if (jPressed && player.animationsAvailable["ATTACK1"] != undefined) isAttacking = true;
@@ -210,18 +202,24 @@ function playerController() {
             player.switchAnimation(player.animationsAvailable.BLOCKING);
         }
 
-        if (player.currentAnimation.animationFinished) {
+        if (player.currentFrame === player.currentAnimation.frameOfActivation && player.currentAnimation.canTriggerAbility) {
 
             switch (player.characterSelected) {
 
                 case charactersAvailable.SOLDIER:
-                    if (player.currentAnimation.name === "ATTACK2") player.abilities[0].activateAbility(player, enemy);
-                    if (player.currentAnimation.name === "ATTACK3") player.abilities[1].activateAbility(player);
+                    if (player.currentAnimation.name === "ATTACK1") player.abilities[0].activateAbility(player);;
+                    if (player.currentAnimation.name === "ATTACK2") player.abilities[1].activateAbility(player, enemy);
+                    if (player.currentAnimation.name === "ATTACK3") player.abilities[2].activateAbility(player);
                     break;
             }
 
+            player.currentAnimation.canTriggerAbility = false;
+        }
+
+        if (player.currentAnimation.animationFinished) {
             isAttacking = false;
             player.currentAnimation.animationFinished = false;
+            player.currentAnimation.canTriggerAbility = true;
             player.switchAnimation(player.animationsAvailable.IDLE);
         }
 
@@ -242,6 +240,7 @@ function playerController() {
         movementSpeed *= 0.2;
     }
 
+    /*
     if (wPressed && aPressed) {
         player.y -= angularSpeed;
         player.x -= angularSpeed;
@@ -269,6 +268,7 @@ function playerController() {
     } else if (dPressed) {
         player.direction = "right";
     }
+    */
 
     // ---- ---- ---- ---- ---- ---- ---- ----
 

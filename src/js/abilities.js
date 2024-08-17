@@ -17,6 +17,14 @@ class Ability {
     }
 }
 
+export const swordSlash = new Ability(
+    "Sword Slash",
+    "Deals damage based on Attack",
+    (caster) => {
+        console.log("Attacked.");
+    }
+);
+
 export const leapingSlam = new Ability(
     "Leaping Slam",
     "Teleports to the nearest enemy, dealing AOE damage and stunning all enemies hit.",
